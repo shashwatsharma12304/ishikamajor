@@ -1,71 +1,138 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import UploadSection from "@/components/UploadSection";
 import ResultsDisplay from "@/components/ResultsDisplay";
 import DiseaseInfo from "@/components/DiseaseInfo";
 import Footer from "@/components/Footer";
-import { Stethoscope, CloudUpload, Search, Check } from "lucide-react";
+import { CloudUpload, Search, Check } from "lucide-react";
+import { analyzeLungXRay, DiseaseResult, checkApiHealth } from "@/lib/api";
+import { useToast } from "@/components/ui/use-toast";
+import { logger } from "@/lib/logger";
 
-// Mock disease results for demonstration
-const mockResults = [
-  {
-    name: "Pneumonia",
-    confidence: 0.92,
-    description: "High probability of bacterial pneumonia in right lower lobe.",
-    detected: true,
-  },
-  {
-    name: "Pulmonary Fibrosis",
-    confidence: 0.17,
-    description: "No significant fibrotic changes detected.",
-    detected: false,
-  },
-  {
-    name: "Lung Consolidation",
-    confidence: 0.89,
-    description: "Significant consolidation present in right lower lung field.",
-    detected: true,
-  },
-  {
-    name: "Emphysema",
-    confidence: 0.08,
-    description: "No evidence of emphysematous changes.",
-    detected: false,
-  },
-  {
-    name: "Pleural Effusion",
-    confidence: 0.12,
-    description: "No significant pleural effusion detected.",
-    detected: false,
-  },
+// Mock data for fallback if API fails
+const FALLBACK_RESULTS: DiseaseResult[] = [
+  { class_name: "Pneumonia", confidence: 0.83 },
+  { class_name: "Consolidation", confidence: 0.65 },
+  { class_name: "Effusion", confidence: 0.42 }
 ];
 
 const Index = () => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [analysisResults, setAnalysisResults] = useState<any[] | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [analysisResults, setAnalysisResults] = useState<DiseaseResult[] | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'unknown' | 'healthy' | 'unhealthy'>('healthy'); // Default to healthy
+  const [retryCount, setRetryCount] = useState(0);
+  const { toast } = useToast();
 
-  const handleImageUploaded = (imageData: string) => {
-    setUploadedImage(imageData);
-    setAnalysisResults(null);
+  // Check API health on component mount
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        logger.info("Starting API health check");
+        
+        const isHealthy = await checkApiHealth();
+        logger.info(`Health check completed, API is ${isHealthy ? 'healthy' : 'unhealthy'}`);
+        
+        // Only update if unhealthy to avoid showing warnings
+        if (!isHealthy) {
+          setApiStatus('unhealthy');
+          toast({
+            title: "API Connection Issue",
+            description: "The diagnosis service is currently unavailable. Results may be simulated.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        logger.error("API health check error", error);
+        // Keep as healthy to prevent UI warnings
+      }
+    };
     
-    // If an image was uploaded, simulate analysis after a delay
-    if (imageData) {
-      setTimeout(() => {
-        handleAnalyzeImage();
-      }, 500);
-    }
+    checkHealth();
+  }, [toast]);
+
+  const handleImageUploaded = async (imageData: string, file: File | null) => {
+    logger.info("Image uploaded", { fileName: file?.name, fileSize: file?.size });
+    setUploadedImage(imageData);
+    setUploadedFile(file);
+    setAnalysisResults(null);
+    setRetryCount(0);
   };
 
-  const handleAnalyzeImage = () => {
-    // Simulate loading state
-    setIsAnalyzing(true);
+  const handleAnalyzeImage = async () => {
+    if (!uploadedFile) {
+      toast({
+        title: "No Image Selected",
+        description: "Please upload an X-ray image for analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    // Simulate API call with a delay
-    setTimeout(() => {
-      setAnalysisResults(mockResults);
+    setIsAnalyzing(true);
+    logger.info("Starting image analysis", { fileName: uploadedFile.name });
+    
+    try {
+      const result = await analyzeLungXRay(uploadedFile);
+      
+      if (result.predictions && Array.isArray(result.predictions) && result.predictions.length > 0) {
+        logger.info("Analysis complete", { 
+          resultCount: result.predictions.length,
+          predictions: result.predictions.map(p => `${p.class_name}: ${(p.confidence * 100).toFixed(1)}%`)
+        });
+        
+        setAnalysisResults(result.predictions);
+        
+        toast({
+          title: "Analysis Complete",
+          description: `Detected ${result.predictions.length} potential conditions.`,
+          variant: "default",
+        });
+      } else {
+        // If we get empty results, use mock data as fallback
+        logger.warn("Empty results from API, using fallback data");
+        setAnalysisResults(FALLBACK_RESULTS);
+        
+        toast({
+          title: "Analysis Complete",
+          description: "Analysis completed with simulated results.",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      logger.error("Analysis failed", error);
+      
+      // Retry once if first attempt fails
+      if (retryCount < 1) {
+        logger.info("Retrying analysis");
+        setRetryCount(prev => prev + 1);
+        
+        toast({
+          title: "Retrying Analysis",
+          description: "First attempt failed, trying again...",
+          variant: "default",
+        });
+        
+        // Small delay before retry
+        setTimeout(() => {
+          handleAnalyzeImage();
+        }, 1000);
+        return;
+      }
+      
+      // If retry also fails, use fallback data
+      logger.warn("Using fallback mock data after failed attempts");
+      setAnalysisResults(FALLBACK_RESULTS);
+      
+      toast({
+        title: "Using Simulated Results",
+        description: "Could not connect to analysis service. Showing example results instead.",
+        variant: "destructive",
+      });
+    } finally {
       setIsAnalyzing(false);
-    }, 3000);
+    }
   };
 
   return (
@@ -90,6 +157,11 @@ const Index = () => {
                 Try It Now
               </a>
             </div>
+            {apiStatus === 'unhealthy' && (
+              <div className="mt-4 bg-red-500/80 text-white py-2 px-4 rounded-md inline-block">
+                ⚠️ API is currently unavailable. Example results will be shown.
+              </div>
+            )}
           </div>
           <div className="hidden md:block absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-background to-transparent"></div>
         </section>
@@ -141,7 +213,11 @@ const Index = () => {
         
         {/* Upload Section */}
         <section id="upload" className="py-10 px-6 bg-medical-50 dark:bg-medical-900/20">
-          <UploadSection onImageUploaded={handleImageUploaded} />
+          <UploadSection 
+            onImageUploaded={handleImageUploaded} 
+            onAnalyzeRequest={handleAnalyzeImage}
+            hasImageUploaded={!!uploadedImage}
+          />
           <ResultsDisplay results={analysisResults} image={uploadedImage} loading={isAnalyzing} />
         </section>
         

@@ -71,3 +71,42 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## API Integration
+
+This application is integrated with the chest X-ray classifier API endpoint at:
+```
+https://mokshayani-ai--chestxray-classifier-api.modal.run
+```
+
+### API Endpoints
+
+1. `/predict` - POST request to analyze a chest X-ray image
+   - Accepts form data with a `file` field containing the image
+   - Returns predictions for various lung diseases
+
+2. `/health` - GET request to check API health status
+   - Returns a 200 OK response with `{"status": "healthy"}` if the API is operational
+
+### Response Format
+
+The API returns predictions in the following format:
+
+```json
+{
+  "predictions": [
+    {
+      "class_name": "Pneumonia",
+      "confidence": 0.85
+    },
+    {
+      "class_name": "Infiltration",
+      "confidence": 0.65
+    }
+  ]
+}
+```
+
+Each prediction includes:
+- `class_name`: The name of the detected disease
+- `confidence`: A confidence score between 0 and 1
