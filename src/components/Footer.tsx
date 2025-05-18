@@ -1,5 +1,5 @@
 import React from "react";
-import { Heart, Stethoscope } from "lucide-react";
+import { Heart, Stethoscope, Mail, Phone, MapPin } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -36,14 +36,24 @@ const Footer = () => {
           </div>
           
           <div>
-            <h4 className="text-lg font-semibold mb-4">Contact</h4>
+            <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
             <address className="not-italic text-medical-100/80">
-              <p>Email: info@lungai-diagnostics.com</p>
-              <p className="mt-2">Phone: +1 (555) 123-4567</p>
-              <p className="mt-2">
-                123 Medical Center Drive<br />
-                Innovation City, CA 94043
-              </p>
+              <div className="flex items-center gap-2 mb-2">
+                <Mail className="h-4 w-4 text-medical-300" />
+                <p>Email: ishika9557372726@gmail.com</p>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <Phone className="h-4 w-4 text-medical-300" />
+                <p>Phone: 9557372726</p>
+              </div>
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 text-medical-300 mt-1" />
+                <p>
+                  Amity University Uttar Pradesh<br />
+                  Amity Rd, Sector 125<br />
+                  Noida, Uttar Pradesh 201301
+                </p>
+              </div>
             </address>
           </div>
         </div>

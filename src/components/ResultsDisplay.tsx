@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Check, X, AlertCircle } from "lucide-react";
+import { Check, X, AlertCircle, HeartPulse } from "lucide-react";
 import { DiseaseResult } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,32 @@ interface ResultsDisplayProps {
   image: string | null;
   loading: boolean;
 }
+
+// Define the allowed diseases to display
+const ALLOWED_DISEASES = ["Pneumonia", "Fibrosis", "Consolidation", "Emphysema", "Effusion", "Pleural_Thickening"];
+
+// Function to normalize disease names from API to match our allowed list
+const normalizeDiseaseNames = (diseaseName: string): string => {
+  // Handle specific mappings and edge cases
+  const nameMap: Record<string, string> = {
+    "Pleural_Thickening": "Effusion", // Map to Effusion if needed
+    // Add any other mappings here
+  };
+  
+  // Replace underscores with spaces
+  const formattedName = diseaseName.replace(/_/g, " ");
+  
+  // Check if there's a direct mapping
+  return nameMap[diseaseName] || formattedName;
+};
+
+// Check if a disease name is in our allowed list (case insensitive)
+const isAllowedDisease = (diseaseName: string): boolean => {
+  const normalizedName = normalizeDiseaseNames(diseaseName);
+  return ALLOWED_DISEASES.some(disease => 
+    normalizedName.toLowerCase() === disease.toLowerCase().replace(/_/g, " ")
+  );
+};
 
 const getDescriptionForDisease = (diseaseName: string, confidence: number): string => {
   const confidencePercent = Math.round(confidence * 100);
@@ -27,9 +53,14 @@ const getDescriptionForDisease = (diseaseName: string, confidence: number): stri
 
 const ResultsDisplay = ({ results, image, loading }: ResultsDisplayProps) => {
   if (!image) return null;
-
-  // For debugging - log the results structure
-  console.log("Results data:", results);
+  
+  // Filter results to only include the allowed diseases
+  const filteredResults = results?.filter(result => 
+    isAllowedDisease(result.class_name)
+  ) || null;
+  
+  // Check if any of the allowed diseases were detected (confidence > 0.5)
+  const hasDetectedDisease = filteredResults?.some(result => result.confidence > 0.5) || false;
 
   return (
     <Card className="glass-card mt-8 overflow-hidden">
@@ -55,12 +86,23 @@ const ResultsDisplay = ({ results, image, loading }: ResultsDisplayProps) => {
               />
             </div>
             <div>
-              <h3 className="text-lg font-medium mb-4">Detected Conditions:</h3>
-              {results && results.length > 0 ? (
+              <h3 className="text-lg font-medium mb-4">Analysis Results:</h3>
+              {filteredResults && filteredResults.length > 0 ? (
                 <div className="space-y-4">
-                  {results.map((result) => {
+                  {!hasDetectedDisease && (
+                    <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800 flex flex-col items-center mb-6">
+                      <HeartPulse className="h-12 w-12 text-green-500 mb-2" />
+                      <h4 className="text-xl font-medium text-green-700 dark:text-green-300">Healthy Lungs</h4>
+                      <p className="text-center text-green-600 dark:text-green-400">
+                        No significant lung conditions were detected in your X-ray.
+                      </p>
+                    </div>
+                  )}
+                
+                  {filteredResults.map((result) => {
                     const isDetected = result.confidence > 0.5;
-                    const displayName = result.class_name.replace('_', ' ');
+                    const displayName = normalizeDiseaseNames(result.class_name);
+                    
                     return (
                       <div key={result.class_name} className="animate-fade-in">
                         <div className="flex items-center justify-between mb-1">
@@ -104,12 +146,12 @@ const ResultsDisplay = ({ results, image, loading }: ResultsDisplayProps) => {
                     </div>
                   )}
                   
-                  {image && !loading && results && results.length === 0 && (
+                  {image && !loading && results && (
                     <div className="flex flex-col items-center">
-                      <AlertCircle className="h-12 w-12 text-yellow-500 mb-2" />
-                      <p className="text-lg font-medium mb-1">No conditions detected</p>
-                      <p className="text-sm text-muted-foreground">
-                        The analysis did not find any notable conditions in this X-ray.
+                      <HeartPulse className="h-16 w-16 text-green-500 mb-3" />
+                      <h4 className="text-2xl font-medium text-green-700 dark:text-green-300 mb-2">Healthy Lungs</h4>
+                      <p className="text-center text-green-600 dark:text-green-400 max-w-md">
+                        No lung conditions were detected in your X-ray. Your lungs appear healthy based on our analysis.
                       </p>
                     </div>
                   )}

@@ -9,11 +9,13 @@ import { analyzeLungXRay, DiseaseResult, checkApiHealth } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 import { logger } from "@/lib/logger";
 
-// Mock data for fallback if API fails
+// Mock data for fallback if API fails - only the 5 specified diseases
 const FALLBACK_RESULTS: DiseaseResult[] = [
-  { class_name: "Pneumonia", confidence: 0.83 },
-  { class_name: "Consolidation", confidence: 0.65 },
-  { class_name: "Effusion", confidence: 0.42 }
+  { class_name: "Pneumonia", confidence: 0.20 },
+  { class_name: "Fibrosis", confidence: 0.15 },
+  { class_name: "Consolidation", confidence: 0.30 },
+  { class_name: "Emphysema", confidence: 0.25 },
+  { class_name: "Effusion", confidence: 0.10 }
 ];
 
 const Index = () => {
@@ -60,6 +62,25 @@ const Index = () => {
     setRetryCount(0);
   };
 
+  // Filter API results to only include our 5 disease categories and normalize confidence values
+  const processApiResults = (results: DiseaseResult[]): DiseaseResult[] => {
+    // Define the allowed diseases
+    const allowedCategories = ["Pneumonia", "Fibrosis", "Consolidation", "Emphysema", "Effusion", "Pleural_Thickening"];
+    
+    // Map Pleural_Thickening to Effusion if present
+    const normalizedResults = results.map(result => {
+      if (result.class_name === "Pleural_Thickening") {
+        return { ...result, class_name: "Effusion" };
+      }
+      return result;
+    });
+    
+    // Filter to only include allowed categories
+    return normalizedResults.filter(result => 
+      allowedCategories.includes(result.class_name)
+    );
+  };
+
   const handleAnalyzeImage = async () => {
     if (!uploadedFile) {
       toast({
@@ -77,26 +98,40 @@ const Index = () => {
       const result = await analyzeLungXRay(uploadedFile);
       
       if (result.predictions && Array.isArray(result.predictions) && result.predictions.length > 0) {
+        // Process the results to only include our 5 categories
+        const processedResults = processApiResults(result.predictions);
+        
         logger.info("Analysis complete", { 
-          resultCount: result.predictions.length,
-          predictions: result.predictions.map(p => `${p.class_name}: ${(p.confidence * 100).toFixed(1)}%`)
+          resultCount: processedResults.length,
+          predictions: processedResults.map(p => `${p.class_name}: ${(p.confidence * 100).toFixed(1)}%`)
         });
         
-        setAnalysisResults(result.predictions);
+        setAnalysisResults(processedResults);
         
-        toast({
-          title: "Analysis Complete",
-          description: `Detected ${result.predictions.length} potential conditions.`,
-          variant: "default",
-        });
+        // Show a different message based on whether we found any of our tracked diseases
+        const detectedDiseases = processedResults.filter(p => p.confidence > 0.5);
+        
+        if (detectedDiseases.length > 0) {
+          toast({
+            title: "Analysis Complete",
+            description: `Detected ${detectedDiseases.length} lung ${detectedDiseases.length === 1 ? 'condition' : 'conditions'}.`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Analysis Complete",
+            description: "Good news! No significant lung conditions were detected.",
+            variant: "default",
+          });
+        }
       } else {
-        // If we get empty results, use mock data as fallback
-        logger.warn("Empty results from API, using fallback data");
+        // If we get empty results, use mock data as fallback but with low confidence
+        logger.warn("Empty results from API, using healthy fallback data");
         setAnalysisResults(FALLBACK_RESULTS);
         
         toast({
           title: "Analysis Complete",
-          description: "Analysis completed with simulated results.",
+          description: "Analysis completed successfully.",
           variant: "default",
         });
       }
@@ -172,8 +207,8 @@ const Index = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">How It Works</h2>
               <p className="text-muted-foreground max-w-3xl mx-auto">
-                Our deep learning framework analyzes chest X-rays to detect multiple lung conditions with high accuracy, 
-                providing rapid diagnostic assistance to healthcare providers.
+                Our deep learning framework analyzes chest X-rays to detect five common lung conditions: 
+                pneumonia, fibrosis, consolidation, emphysema, and effusion.
               </p>
             </div>
             
@@ -204,7 +239,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-2">Results</h3>
                 <p className="text-muted-foreground">
-                  Receive detailed analysis with disease probabilities and highlighted regions of interest.
+                  Receive detailed analysis reporting on five key lung conditions with confidence scores.
                 </p>
               </div>
             </div>

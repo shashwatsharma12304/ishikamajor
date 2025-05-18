@@ -1,15 +1,14 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Stethoscope, ThermometerSnowflake, Heart, Hospital } from "lucide-react";
+import { Stethoscope, ThermometerSnowflake, Heart, Hospital, Wind } from "lucide-react";
 
 const DiseaseInfo = () => {
   return (
     <div className="py-10" id="diseases">
       <h2 className="text-3xl font-bold text-center mb-2">Lung Conditions Analysis</h2>
       <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
-        Our AI system can detect multiple lung conditions from chest X-ray images with high accuracy.
+        Our AI system analyzes chest X-rays for five key lung conditions with high accuracy.
         Learn more about these conditions below.
       </p>
       
@@ -29,7 +28,7 @@ const DiseaseInfo = () => {
               <span className="hidden md:inline">Consolidation</span>
             </TabsTrigger>
             <TabsTrigger value="emphysema" className="flex items-center gap-2">
-              <Stethoscope className="h-4 w-4" />
+              <Wind className="h-4 w-4" />
               <span className="hidden md:inline">Emphysema</span>
             </TabsTrigger>
             <TabsTrigger value="effusion" className="flex items-center gap-2">
@@ -68,8 +67,8 @@ const DiseaseInfo = () => {
                 <div>
                   <h4 className="font-semibold mb-2 text-medical-800 dark:text-medical-300">AI Detection Accuracy</h4>
                   <p className="text-muted-foreground mb-4">
-                    Our AI model achieves 91% accuracy in detecting pneumonia from chest X-rays,
-                    with high sensitivity for early-stage cases that might be challenging for visual inspection.
+                    Our AI model achieves 80.3% accuracy with an AUC of 0.807 in detecting pneumonia from chest X-rays,
+                    with a sensitivity of 0.663 and specificity of 0.805.
                   </p>
                   
                   <div className="bg-medical-50 dark:bg-medical-900/30 p-4 rounded-lg border border-medical-100 dark:border-medical-800">
@@ -115,8 +114,8 @@ const DiseaseInfo = () => {
                 <div>
                   <h4 className="font-semibold mb-2 text-medical-800 dark:text-medical-300">AI Detection Accuracy</h4>
                   <p className="text-muted-foreground mb-4">
-                    Our model achieves 89% accuracy in detecting pulmonary fibrosis patterns,
-                    helping identify cases early when intervention may slow progression.
+                    Our model achieves 71.9% accuracy with an AUC of 0.786 for pulmonary fibrosis, 
+                    with a sensitivity of 0.719 and specificity of 0.719.
                   </p>
                   
                   <div className="bg-medical-50 dark:bg-medical-900/30 p-4 rounded-lg border border-medical-100 dark:border-medical-800">
@@ -162,8 +161,8 @@ const DiseaseInfo = () => {
                 <div>
                   <h4 className="font-semibold mb-2 text-medical-800 dark:text-medical-300">AI Detection Accuracy</h4>
                   <p className="text-muted-foreground mb-4">
-                    Our model identifies consolidation patterns with 93% accuracy across various causes,
-                    helping distinguish between infectious, inflammatory, and other etiologies.
+                    Our model identifies consolidation patterns with 74.4% accuracy and an AUC of 0.818,
+                    with a sensitivity of 0.776 and specificity of 0.743.
                   </p>
                   
                   <div className="bg-medical-50 dark:bg-medical-900/30 p-4 rounded-lg border border-medical-100 dark:border-medical-800">
@@ -184,7 +183,7 @@ const DiseaseInfo = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Stethoscope className="h-5 w-5 text-medical-600" />
+                <Wind className="h-5 w-5 text-medical-600" />
                 Emphysema
               </CardTitle>
             </CardHeader>
@@ -208,8 +207,8 @@ const DiseaseInfo = () => {
                 <div>
                   <h4 className="font-semibold mb-2 text-medical-800 dark:text-medical-300">AI Detection Accuracy</h4>
                   <p className="text-muted-foreground mb-4">
-                    Our model detects emphysematous changes with 87% accuracy on chest X-rays,
-                    though CT scans remain the gold standard for detailed assessment.
+                    Our model detects emphysematous changes with 87.7% accuracy and an impressive AUC of 0.936,
+                    with a sensitivity of 0.851 and specificity of 0.877.
                   </p>
                   
                   <div className="bg-medical-50 dark:bg-medical-900/30 p-4 rounded-lg border border-medical-100 dark:border-medical-800">
@@ -248,23 +247,23 @@ const DiseaseInfo = () => {
                   <ul className="list-disc list-inside text-muted-foreground">
                     <li>Blunting of costophrenic angle on an upright film</li>
                     <li>Fluid level visible on lateral decubitus views</li>
-                    <li>Meniscus sign - concave upward opacity at lung base</li>
-                    <li>May cause mediastinal shift if large</li>
+                    <li>Meniscus sign at the edge of the effusion</li>
+                    <li>Possible mediastinal shift away from effusion if large</li>
                   </ul>
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2 text-medical-800 dark:text-medical-300">AI Detection Accuracy</h4>
                   <p className="text-muted-foreground mb-4">
-                    Our AI detects pleural effusions with 94% accuracy, including small effusions that
-                    might be missed in initial readings, especially on suboptimal images.
+                    Our AI system detects pleural effusion with 79.4% accuracy and an AUC of 0.905,
+                    with a sensitivity of 0.891 and specificity of 0.780.
                   </p>
                   
                   <div className="bg-medical-50 dark:bg-medical-900/30 p-4 rounded-lg border border-medical-100 dark:border-medical-800">
                     <h4 className="font-semibold mb-2 text-medical-800 dark:text-medical-300">Clinical Significance</h4>
                     <p className="text-sm text-muted-foreground">
-                      Detection of effusion prompts investigation into underlying causes, which range from heart failure
-                      to malignancy or infection. The AI quantifies the approximate volume and can detect subtle effusions,
-                      improving diagnostic sensitivity in regions with limited radiological expertise.
+                      Pleural effusion can indicate various underlying conditions such as heart failure,
+                      infection, malignancy, or inflammation. AI detection helps quantify fluid volume and
+                      monitor changes over time, which is essential for treatment planning.
                     </p>
                   </div>
                 </div>
