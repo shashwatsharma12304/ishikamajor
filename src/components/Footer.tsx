@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Heart, Lungs } from "lucide-react";
+import { Heart, Stethoscope } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -9,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Lungs className="h-6 w-6" />
+              <Stethoscope className="h-6 w-6" />
               <h3 className="text-xl font-bold">LungAI Diagnostics</h3>
             </div>
             <p className="text-medical-100/70 text-sm">

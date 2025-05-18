@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lungs, ThermometerSnowflake, Heart, Hospital } from "lucide-react";
+import { Stethoscope, ThermometerSnowflake, Heart, Hospital } from "lucide-react";
 
 const DiseaseInfo = () => {
   return (
@@ -21,7 +21,7 @@ const DiseaseInfo = () => {
               <span className="hidden md:inline">Pneumonia</span>
             </TabsTrigger>
             <TabsTrigger value="fibrosis" className="flex items-center gap-2">
-              <Lungs className="h-4 w-4" />
+              <Stethoscope className="h-4 w-4" />
               <span className="hidden md:inline">Fibrosis</span>
             </TabsTrigger>
             <TabsTrigger value="consolidation" className="flex items-center gap-2">
@@ -29,7 +29,7 @@ const DiseaseInfo = () => {
               <span className="hidden md:inline">Consolidation</span>
             </TabsTrigger>
             <TabsTrigger value="emphysema" className="flex items-center gap-2">
-              <Lungs className="h-4 w-4" />
+              <Stethoscope className="h-4 w-4" />
               <span className="hidden md:inline">Emphysema</span>
             </TabsTrigger>
             <TabsTrigger value="effusion" className="flex items-center gap-2">
@@ -90,7 +90,7 @@ const DiseaseInfo = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Lungs className="h-5 w-5 text-medical-600" />
+                <Stethoscope className="h-5 w-5 text-medical-600" />
                 Pulmonary Fibrosis
               </CardTitle>
             </CardHeader>
@@ -184,7 +184,7 @@ const DiseaseInfo = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Lungs className="h-5 w-5 text-medical-600" />
+                <Stethoscope className="h-5 w-5 text-medical-600" />
                 Emphysema
               </CardTitle>
             </CardHeader>

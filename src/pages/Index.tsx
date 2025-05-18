@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import UploadSection from "@/components/UploadSection";
 import ResultsDisplay from "@/components/ResultsDisplay";
 import DiseaseInfo from "@/components/DiseaseInfo";
 import Footer from "@/components/Footer";
-import { Lungs } from "lucide-react";
+import { Stethoscope, CloudUpload, Search, Check } from "lucide-react";
 
 // Mock disease results for demonstration
 const mockResults = [
